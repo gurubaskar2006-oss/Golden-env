@@ -263,9 +263,9 @@ Verified heuristic benchmark baseline from `outputs/baseline_scores.json` after 
 | --- | --- |
 | `easy_single_critical` | `0.9999` |
 | `medium_split_queue` | `0.9999` |
-| `hard_peak_hour_tradeoffs` | `0.8750` |
-| `city_shift_priority_mix` | `0.8500` |
-| `mean` | `0.9312` |
+| `hard_peak_hour_tradeoffs` | `0.8749` |
+| `city_shift_priority_mix` | `0.8499` |
+| `mean` | `0.9311` |
 
 These numbers are from the deterministic `--policy heuristic` benchmark sweep, which is the safest reproducible baseline for submission packaging. The benchmark score is deliberately kept strictly inside `(0, 1)` to avoid phase-2 edge-case validator failures on exact endpoint values. If you want the README to report the routed LLM benchmark instead, rerun `python inference.py` with `API_KEY` or `HF_TOKEN`, plus `API_BASE_URL` and `MODEL_NAME`, then replace the table with the new `outputs/baseline_scores.json` values.
 

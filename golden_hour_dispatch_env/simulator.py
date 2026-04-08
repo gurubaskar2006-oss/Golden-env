@@ -50,6 +50,10 @@ TRAFFIC_PHASE_FACTORS = {
 SCORE_EPSILON = 1e-4
 
 
+def _clamp_score_metric(value: float) -> float:
+    return max(SCORE_EPSILON, min(1.0 - SCORE_EPSILON, value))
+
+
 @dataclass
 class MutableAmbulance:
     ambulance_id: str
@@ -743,13 +747,17 @@ def score_breakdown_for_snapshot(snapshot: SimulationSnapshot, steps_taken: int)
         0.0,
         1.0 - (snapshot.invalid_actions / max(snapshot.task_config.max_steps, 1)),
     )
+    weighted_ratio = _clamp_score_metric(weighted_ratio)
+    coverage_ratio = _clamp_score_metric(coverage_ratio)
+    critical_coverage = _clamp_score_metric(critical_coverage)
+    action_hygiene = _clamp_score_metric(action_hygiene)
     raw_score = (
         0.60 * weighted_ratio
         + 0.15 * coverage_ratio
         + 0.15 * critical_coverage
         + 0.10 * action_hygiene
     )
-    score = max(SCORE_EPSILON, min(1.0 - SCORE_EPSILON, raw_score))
+    score = _clamp_score_metric(raw_score)
     return {
         "score": round(score, 4),
         "weighted_ratio": round(weighted_ratio, 4),

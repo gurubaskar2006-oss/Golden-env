@@ -6,6 +6,10 @@ from .task_bank import TASKS, list_task_cards
 SCORE_EPSILON = 1e-4
 
 
+def _clamp_score_metric(value: float) -> float:
+    return max(SCORE_EPSILON, min(1.0 - SCORE_EPSILON, value))
+
+
 def grade_state(state: DispatchState) -> dict[str, float]:
     weighted_ratio = (
         min(state.weighted_survival_gained / state.optimal_weighted_survival, 1.0)
@@ -24,13 +28,17 @@ def grade_state(state: DispatchState) -> dict[str, float]:
         0.0,
         1.0 - (state.invalid_actions / max(state.max_steps, 1)),
     )
+    weighted_ratio = _clamp_score_metric(weighted_ratio)
+    coverage_ratio = _clamp_score_metric(coverage_ratio)
+    critical_coverage = _clamp_score_metric(critical_coverage)
+    action_hygiene = _clamp_score_metric(action_hygiene)
     raw_score = (
         0.60 * weighted_ratio
         + 0.15 * coverage_ratio
         + 0.15 * critical_coverage
         + 0.10 * action_hygiene
     )
-    score = max(SCORE_EPSILON, min(1.0 - SCORE_EPSILON, raw_score))
+    score = _clamp_score_metric(raw_score)
     return {
         "score": round(score, 4),
         "weighted_ratio": round(weighted_ratio, 4),
