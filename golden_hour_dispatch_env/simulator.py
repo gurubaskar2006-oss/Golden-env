@@ -764,7 +764,6 @@ def score_breakdown_for_snapshot(snapshot: SimulationSnapshot, steps_taken: int)
         "coverage_ratio": round(coverage_ratio, 4),
         "critical_coverage": round(critical_coverage, 4),
         "action_hygiene": round(action_hygiene, 4),
-        "steps_taken": float(steps_taken),
     }
 
 
