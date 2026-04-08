@@ -194,7 +194,7 @@ Deploy as a Docker Space and keep the `openenv` tag in the Space metadata. The s
 1. Create a new Space on Hugging Face and choose `Docker` as the SDK.
 2. Name the Space something like `golden-hour-dispatch-env`.
 3. Upload the contents of this repo root to the Space root:
-   `README.md`, `Dockerfile`, `openenv.yaml`, `pyproject.toml`, `inference.py`, `golden_hour_dispatch_env/`, and `tests/`.
+   `README.md`, `Dockerfile`, `openenv.yaml`, `pyproject.toml`, `uv.lock`, `inference.py`, `golden_hour_dispatch_env/`, `server/`, `tests/`, and optionally `outputs/`.
 4. Make sure the YAML block at the top of `README.md` stays intact because Hugging Face reads the Space configuration from there.
 5. Wait for the image build to complete. This project listens on port `8000`, which already matches the `app_port` value in the README front matter.
 6. After the Space turns green, test:
@@ -292,8 +292,13 @@ golden_hour_dispatch_env/
   server/
     app.py
     dispatch_environment.py
+server/
+  app.py
+tests/
 inference.py
 openenv.yaml
+pyproject.toml
+uv.lock
 Dockerfile
 README.md
 ```
