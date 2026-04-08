@@ -9,7 +9,7 @@ def test_tasks_can_reset_and_finish() -> None:
         env = GoldenHourDispatchEnvironment(task_id=task_id)
         observation = env.reset()
         assert observation.task.task_id == task_id
-        assert observation.reward_breakdown.total_reward == 0.0
+        assert 0.0 < observation.reward_breakdown.total_reward < 1.0
         while not observation.done:
             assert observation.available_dispatches
             best = max(observation.available_dispatches, key=lambda item: item.weighted_survival)

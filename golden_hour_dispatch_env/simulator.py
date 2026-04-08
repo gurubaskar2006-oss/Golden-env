@@ -54,6 +54,37 @@ def _clamp_score_metric(value: float) -> float:
     return max(SCORE_EPSILON, min(1.0 - SCORE_EPSILON, value))
 
 
+def _normalize_exposed_reward(value: float) -> float:
+    if value >= 0:
+        normalized = 1.0 / (1.0 + math.exp(-min(value, 60.0)))
+    else:
+        exp_value = math.exp(max(value, -60.0))
+        normalized = exp_value / (1.0 + exp_value)
+    return round(_clamp_score_metric(normalized), 4)
+
+
+def _normalize_nonnegative_exposed_metric(value: float) -> float:
+    normalized = value / (1.0 + value) if value > 0 else 0.0
+    return round(_clamp_score_metric(normalized), 4)
+
+
+def _normalize_reward_breakdown(reward_breakdown: RewardBreakdown) -> RewardBreakdown:
+    return RewardBreakdown(
+        survival_gain=_normalize_nonnegative_exposed_metric(reward_breakdown.survival_gain),
+        backlog_pressure_penalty=_normalize_nonnegative_exposed_metric(
+            reward_breakdown.backlog_pressure_penalty
+        ),
+        invalid_action_penalty=_normalize_nonnegative_exposed_metric(
+            reward_breakdown.invalid_action_penalty
+        ),
+        corridor_cost=_normalize_nonnegative_exposed_metric(reward_breakdown.corridor_cost),
+        missed_incident_penalty=_normalize_nonnegative_exposed_metric(
+            reward_breakdown.missed_incident_penalty
+        ),
+        total_reward=_normalize_exposed_reward(reward_breakdown.total_reward),
+    )
+
+
 @dataclass
 class MutableAmbulance:
     ambulance_id: str
@@ -522,6 +553,8 @@ def build_observation(
     task = descriptor_for_task(snapshot.task_config)
     done = snapshot.done_reason is not None
     score_breakdown = score_breakdown_for_snapshot(snapshot, steps_taken)
+    exposed_reward_breakdown = _normalize_reward_breakdown(reward_breakdown)
+    exposed_reward = exposed_reward_breakdown.total_reward
 
     return DispatchObservation(
         task=task,
@@ -539,22 +572,23 @@ def build_observation(
         available_dispatches=candidates,
         masked_actions=masked_actions(snapshot, candidates),
         decision_log=snapshot.decision_log[-4:],
-        reward_breakdown=reward_breakdown,
+        reward_breakdown=exposed_reward_breakdown,
         summary=build_summary(snapshot, candidates),
-        reward=reward_breakdown.total_reward,
+        reward=exposed_reward,
         done=done,
         metadata={
             "task_score_preview": score_breakdown["score"],
             "weighted_ratio": score_breakdown["weighted_ratio"],
             "coverage_ratio": score_breakdown["coverage_ratio"],
             "invalid_actions": snapshot.invalid_actions,
-            "reward_breakdown": reward_breakdown.model_dump(),
+            "reward_breakdown": exposed_reward_breakdown.model_dump(),
         },
     )
 
 
 def build_state(snapshot: SimulationSnapshot, steps_taken: int) -> DispatchState:
     breakdown = score_breakdown_for_snapshot(snapshot, steps_taken)
+    exposed_reward_breakdown = _normalize_reward_breakdown(snapshot.last_reward_breakdown)
     return DispatchState(
         task=descriptor_for_task(snapshot.task_config),
         current_time_minute=snapshot.current_time_minute,
@@ -572,7 +606,7 @@ def build_state(snapshot: SimulationSnapshot, steps_taken: int) -> DispatchState
         incidents=incident_snapshots(snapshot),
         hospitals=hospital_snapshots(snapshot),
         decision_log=snapshot.decision_log,
-        last_reward_breakdown=snapshot.last_reward_breakdown,
+        last_reward_breakdown=exposed_reward_breakdown,
         task_score=breakdown["score"],
         score_breakdown=breakdown,
     )
