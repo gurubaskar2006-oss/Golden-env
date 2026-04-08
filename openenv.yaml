@@ -1,0 +1,7 @@
+spec_version: 1
+name: golden_hour_dispatch_env
+type: space
+runtime: fastapi
+app: golden_hour_dispatch_env.server.app:app
+port: 8000
+
