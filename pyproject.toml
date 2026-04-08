@@ -31,6 +31,7 @@ server = "server.app:main"
 
 [tool.setuptools]
 include-package-data = true
+py-modules = ["task_graders"]
 
 [tool.setuptools.packages.find]
 include = ["golden_hour_dispatch_env*", "server*"]

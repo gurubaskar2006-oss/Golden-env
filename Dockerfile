@@ -11,7 +11,7 @@ RUN useradd -m -u 1000 user
 USER user
 WORKDIR $HOME/app
 
-COPY --chown=user pyproject.toml README.md openenv.yaml inference.py uv.lock ./
+COPY --chown=user pyproject.toml README.md openenv.yaml inference.py task_graders.py uv.lock ./
 COPY --chown=user golden_hour_dispatch_env ./golden_hour_dispatch_env
 COPY --chown=user server ./server
 COPY --chown=user tests ./tests

@@ -194,7 +194,7 @@ Deploy as a Docker Space and keep the `openenv` tag in the Space metadata. The s
 1. Create a new Space on Hugging Face and choose `Docker` as the SDK.
 2. Name the Space something like `golden-hour-dispatch-env`.
 3. Upload the contents of this repo root to the Space root:
-   `README.md`, `Dockerfile`, `openenv.yaml`, `pyproject.toml`, `uv.lock`, `inference.py`, `golden_hour_dispatch_env/`, `server/`, `tests/`, and optionally `outputs/`.
+   `README.md`, `Dockerfile`, `openenv.yaml`, `pyproject.toml`, `uv.lock`, `inference.py`, `task_graders.py`, `golden_hour_dispatch_env/`, `server/`, `tests/`, and optionally `outputs/`.
 4. Make sure the YAML block at the top of `README.md` stays intact because Hugging Face reads the Space configuration from there.
 5. Wait for the image build to complete. This project listens on port `8000`, which already matches the `app_port` value in the README front matter.
 6. After the Space turns green, test:
@@ -225,24 +225,30 @@ Run:
 python inference.py
 ```
 
-By default, this runs a single episode and emits one `[START] ... [END]` trace, which matches the latest organizer guidance more closely.
+By default, this runs one episode per benchmark task and emits a `[START] ... [END]` trace for each task, which makes the task sweep explicit for evaluation and baseline reproduction.
 
 Optional heuristic smoke test:
 
 ```bash
-python inference.py --policy heuristic
+python inference.py --policy heuristic --single-episode
 ```
 
 To reproduce the benchmark table across all deterministic tasks, use:
 
 ```bash
-python inference.py --policy heuristic --all-tasks
+python inference.py --policy heuristic
 ```
 
 If you want a routed LLM baseline across every benchmark task instead of a single episode, use:
 
 ```bash
-python inference.py --all-tasks
+python inference.py
+```
+
+If you want to force only one episode, use:
+
+```bash
+python inference.py --single-episode
 ```
 
 The script emits organizer-style stdout logs per episode:
@@ -251,7 +257,7 @@ The script emits organizer-style stdout logs per episode:
 - `[STEP] step=<n> action=<json> reward=<0.00> done=<true|false> error=<msg|null>`
 - `[END] success=<true|false> steps=<n> rewards=<r1,r2,...,rn>`
 
-Verified heuristic benchmark baseline from `outputs/baseline_scores.json` after running `python inference.py --policy heuristic --all-tasks`:
+Verified heuristic benchmark baseline from `outputs/baseline_scores.json` after running `python inference.py --policy heuristic`:
 
 | Task | Score |
 | --- | --- |
@@ -261,7 +267,7 @@ Verified heuristic benchmark baseline from `outputs/baseline_scores.json` after 
 | `city_shift_priority_mix` | `0.8500` |
 | `mean` | `0.9312` |
 
-These numbers are from the deterministic `--policy heuristic --all-tasks` run, which is the safest reproducible benchmark baseline for submission packaging. The benchmark score is deliberately kept strictly inside `(0, 1)` to avoid phase-2 edge-case validator failures on exact endpoint values. If you want the README to report the routed LLM benchmark instead, rerun `python inference.py --all-tasks` with `API_KEY` or `HF_TOKEN`, plus `API_BASE_URL` and `MODEL_NAME`, then replace the table with the new `outputs/baseline_scores.json` values.
+These numbers are from the deterministic `--policy heuristic` benchmark sweep, which is the safest reproducible baseline for submission packaging. The benchmark score is deliberately kept strictly inside `(0, 1)` to avoid phase-2 edge-case validator failures on exact endpoint values. If you want the README to report the routed LLM benchmark instead, rerun `python inference.py` with `API_KEY` or `HF_TOKEN`, plus `API_BASE_URL` and `MODEL_NAME`, then replace the table with the new `outputs/baseline_scores.json` values.
 
 ## Submission Lock Checklist
 
@@ -269,10 +275,10 @@ Before submission, treat the deterministic benchmark path as frozen and verify t
 
 1. `docker build .`
 2. `openenv validate`
-3. `python inference.py --policy heuristic`
-4. `python inference.py --policy heuristic --all-tasks`
+3. `python inference.py --policy heuristic --single-episode`
+4. `python inference.py --policy heuristic`
 5. `python inference.py` with `API_KEY` or `HF_TOKEN`, plus `API_BASE_URL` and `MODEL_NAME`
-6. if you want a routed multi-task baseline table, run `python inference.py --all-tasks`
+6. if you want a routed single-episode smoke test, run `python inference.py --single-episode`
 7. update the README score table with real baseline values
 8. make the Hugging Face Space public
 9. run the provided validator script against the public Space URL
@@ -296,6 +302,7 @@ server/
   app.py
 tests/
 inference.py
+task_graders.py
 openenv.yaml
 pyproject.toml
 uv.lock

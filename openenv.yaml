@@ -4,4 +4,32 @@ type: space
 runtime: fastapi
 app: golden_hour_dispatch_env.server.app:app
 port: 8000
-
+tasks:
+  - id: easy_single_critical
+    task_id: easy_single_critical
+    difficulty: easy
+    description: Single 108 cardiac case in central Chennai with one clear ALS choice.
+    reward_range: [0.0001, 0.9999]
+    grader: task_graders:grade_easy_single_critical
+    has_grader: true
+  - id: medium_split_queue
+    task_id: medium_split_queue
+    difficulty: medium
+    description: Concurrent 108 heart attack and 102 maternal transport with resource tradeoffs.
+    reward_range: [0.0001, 0.9999]
+    grader: task_graders:grade_medium_split_queue
+    has_grader: true
+  - id: hard_peak_hour_tradeoffs
+    task_id: hard_peak_hour_tradeoffs
+    difficulty: hard
+    description: Three active incidents under peak Chennai congestion with one corridor budget.
+    reward_range: [0.0001, 0.9999]
+    grader: task_graders:grade_hard_peak_hour_tradeoffs
+    has_grader: true
+  - id: city_shift_priority_mix
+    task_id: city_shift_priority_mix
+    difficulty: hard
+    description: Multi-incident Chennai control-room shift mixing 108 and 102 priorities.
+    reward_range: [0.0001, 0.9999]
+    grader: task_graders:grade_city_shift_priority_mix
+    has_grader: true

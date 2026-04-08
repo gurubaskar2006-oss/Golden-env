@@ -50,7 +50,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--all-tasks",
         action="store_true",
-        help="Run one episode per benchmark task instead of the default single-episode mode.",
+        help="Run one episode per benchmark task.",
+    )
+    parser.add_argument(
+        "--single-episode",
+        action="store_true",
+        help="Override the default benchmark sweep and run just one episode.",
     )
     parser.add_argument(
         "--task-id",
@@ -84,20 +89,31 @@ def main() -> None:
     args = parse_args()
     client = build_openai_client(args.policy)
 
+    run_all_tasks = not args.single_episode
+    if args.all_tasks:
+        run_all_tasks = True
+
+    if args.task_id:
+        run_all_tasks = False
+
+    if args.all_tasks and args.single_episode:
+        raise RuntimeError("Use either --all-tasks or --single-episode, not both.")
     if args.all_tasks and args.task_id:
         raise RuntimeError("Use either --all-tasks or --task-id, not both.")
+    if args.single_episode and args.task_id:
+        raise RuntimeError("Use either --single-episode or --task-id, not both.")
 
     if LOCAL_IMAGE_NAME:
         reports = run_via_docker_client(
             client=client,
             policy=args.policy,
-            run_all_tasks=args.all_tasks,
+            run_all_tasks=run_all_tasks,
         )
     else:
         reports = run_in_process(
             client=client,
             policy=args.policy,
-            run_all_tasks=args.all_tasks,
+            run_all_tasks=run_all_tasks,
             task_id=args.task_id,
         )
 
@@ -106,7 +122,7 @@ def main() -> None:
         "benchmark": BENCHMARK,
         "policy": args.policy,
         "model_name": MODEL_NAME if args.policy == "llm" else "heuristic",
-        "mode": "all_tasks" if args.all_tasks else "single_episode",
+        "mode": "all_tasks" if run_all_tasks else "single_episode",
         "mean_score": mean_score,
         "tasks": reports,
     }
