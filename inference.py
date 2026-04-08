@@ -9,7 +9,6 @@ from typing import Any
 from openai import OpenAI
 
 from golden_hour_dispatch_env.client import GoldenHourDispatchEnv
-from golden_hour_dispatch_env.graders import grade_state
 from golden_hour_dispatch_env.models import DispatchAction, DispatchObservation
 from golden_hour_dispatch_env.server.dispatch_environment import GoldenHourDispatchEnvironment
 from golden_hour_dispatch_env.task_bank import TASKS
@@ -229,12 +228,6 @@ def run_episode(
         report = {
             "task_id": task_id,
             "score": round(score, 4),
-            **grade_state(final_state),
-            "cumulative_reward": round(float(final_state.cumulative_reward), 4),
-            "weighted_survival_gained": round(float(final_state.weighted_survival_gained), 4),
-            "invalid_actions": int(final_state.invalid_actions),
-            "steps_taken": steps_taken,
-            "rewards": [round(reward, 4) for reward in rewards],
         }
         return report
     finally:

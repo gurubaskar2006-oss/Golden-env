@@ -7,66 +7,19 @@
   "tasks": [
     {
       "task_id": "easy_single_critical",
-      "score": 0.9999,
-      "weighted_ratio": 0.9999,
-      "coverage_ratio": 0.9999,
-      "critical_coverage": 0.9999,
-      "action_hygiene": 0.9999,
-      "cumulative_reward": 1.2025,
-      "weighted_survival_gained": 1.2825,
-      "invalid_actions": 0,
-      "steps_taken": 1,
-      "rewards": [
-        1.2025
-      ]
+      "score": 0.9999
     },
     {
       "task_id": "medium_split_queue",
-      "score": 0.9999,
-      "weighted_ratio": 0.9999,
-      "coverage_ratio": 0.9999,
-      "critical_coverage": 0.9999,
-      "action_hygiene": 0.9999,
-      "cumulative_reward": 0.1163,
-      "weighted_survival_gained": 0.4363,
-      "invalid_actions": 0,
-      "steps_taken": 2,
-      "rewards": [
-        0.1853,
-        -0.069
-      ]
+      "score": 0.9999
     },
     {
       "task_id": "hard_peak_hour_tradeoffs",
-      "score": 0.8749,
-      "weighted_ratio": 0.9999,
-      "coverage_ratio": 0.6667,
-      "critical_coverage": 0.5,
-      "action_hygiene": 0.9999,
-      "cumulative_reward": -1.0656,
-      "weighted_survival_gained": 1.004,
-      "invalid_actions": 0,
-      "steps_taken": 2,
-      "rewards": [
-        0.4854,
-        -1.551
-      ]
+      "score": 0.8749
     },
     {
       "task_id": "city_shift_priority_mix",
-      "score": 0.8499,
-      "weighted_ratio": 0.9999,
-      "coverage_ratio": 0.5,
-      "critical_coverage": 0.5,
-      "action_hygiene": 0.9999,
-      "cumulative_reward": -2.0879,
-      "weighted_survival_gained": 0.6933,
-      "invalid_actions": 0,
-      "steps_taken": 2,
-      "rewards": [
-        -0.1026,
-        -1.9853
-      ]
+      "score": 0.8499
     }
   ]
 }
