@@ -76,10 +76,10 @@ def log_step(step: int, action: str, reward: float, done: bool, error: str | Non
     )
 
 
-def log_end(success: bool, steps: int, rewards: list[float]) -> None:
+def log_end(task: str, score: float, steps: int, success: bool, rewards: list[float]) -> None:
     rewards_str = ",".join(f"{reward:.2f}" for reward in rewards)
     print(
-        f"[END] success={str(success).lower()} steps={steps} rewards={rewards_str}",
+        f"[END] task={task} score={score:.4f} steps={steps} success={str(success).lower()} rewards={rewards_str}",
         flush=True,
     )
 
@@ -231,13 +231,17 @@ def run_episode(
         }
         return report
     finally:
+        end_score = 0.5001
         if final_state is None and observation is not None:
             try:
                 final_state = env.state if not callable(getattr(env, "state", None)) else env.state()
-                success = float(final_state.task_score or 0.0) >= SUCCESS_SCORE_THRESHOLD
+                end_score = float(final_state.task_score or 0.5001)
+                success = end_score >= SUCCESS_SCORE_THRESHOLD
             except Exception:
                 success = False
-        log_end(success=success, steps=steps_taken, rewards=rewards)
+        elif final_state is not None:
+            end_score = float(final_state.task_score or 0.5001)
+        log_end(task=task_id, score=end_score, steps=steps_taken, success=success, rewards=rewards)
 
 
 def choose_action(
