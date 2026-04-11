@@ -4,11 +4,11 @@ import argparse
 import inspect
 import uvicorn
 from fastapi.responses import HTMLResponse
-from fastapi import Body
-from pydantic import BaseModel
+from fastapi import Body, HTTPException, Query
+from pydantic import BaseModel, ConfigDict
 from openenv.core.env_server.http_server import create_app
 from openenv.core.env_server.serialization import serialize_observation
-from openenv.core.env_server.types import ResetRequest, ResetResponse, SchemaResponse, StepRequest, StepResponse
+from openenv.core.env_server.types import ResetResponse, SchemaResponse, StepRequest, StepResponse
 
 from ..models import DispatchAction, DispatchObservation, DispatchState
 from ..task_bank import DEFAULT_DEMO_TASK_ID, DEMO_TASKS, TASKS, list_demo_task_cards, list_task_cards, resolve_demo_task, ui_graph
@@ -22,7 +22,9 @@ app = create_app(
     env_name="golden_hour_dispatch_env",
 )
 
-_http_env = GoldenHourDispatchEnvironment()
+_openenv_env = GoldenHourDispatchEnvironment()
+_openenv_task_id: str | None = None
+_demo_env = GoldenHourDispatchEnvironment(task_id=DEFAULT_DEMO_TASK_ID)
 _demo_context: dict[str, object] = {
     "requested_task_id": DEFAULT_DEMO_TASK_ID,
     "requested_title": DEMO_TASKS[DEFAULT_DEMO_TASK_ID].title,
@@ -31,6 +33,14 @@ _demo_context: dict[str, object] = {
     "mode": "showcase",
     "bonus_multiplier": 1.18,
 }
+
+
+class EnvironmentResetRequest(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    seed: int | None = None
+    episode_id: str | None = None
+    task_id: str | None = None
 
 
 class DemoResetRequest(BaseModel):
@@ -67,14 +77,25 @@ def root() -> str:
     return render_dashboard()
 
 
-def _set_env(task_id: str | None = None) -> GoldenHourDispatchEnvironment:
-    global _http_env
-    _http_env = GoldenHourDispatchEnvironment(task_id=task_id)
-    return _http_env
+def _set_openenv_env(task_id: str | None = None) -> GoldenHourDispatchEnvironment:
+    global _openenv_env, _openenv_task_id
+    _openenv_task_id = task_id
+    _openenv_env = GoldenHourDispatchEnvironment(task_id=task_id)
+    return _openenv_env
 
 
-def _current_env() -> GoldenHourDispatchEnvironment:
-    return _http_env
+def _current_openenv_env() -> GoldenHourDispatchEnvironment:
+    return _openenv_env
+
+
+def _set_demo_env(task_id: str | None = None) -> GoldenHourDispatchEnvironment:
+    global _demo_env
+    _demo_env = GoldenHourDispatchEnvironment(task_id=task_id)
+    return _demo_env
+
+
+def _current_demo_env() -> GoldenHourDispatchEnvironment:
+    return _demo_env
 
 
 def _heuristic_action(observation: DispatchObservation) -> DispatchAction:
@@ -110,7 +131,7 @@ def _best_candidate(observation: DispatchObservation):
 
 
 def _dispatch_wave(max_actions: int | None = None) -> tuple[DispatchObservation, list[dict[str, object]]]:
-    env = _current_env()
+    env = _current_demo_env()
     observation = env.last_observation
     if observation.done:
         return observation, []
@@ -142,7 +163,7 @@ def _dispatch_wave(max_actions: int | None = None) -> tuple[DispatchObservation,
 
 
 def _serialize_demo() -> dict[str, object]:
-    env = _current_env()
+    env = _current_demo_env()
     ops_score = round(
         min(float(env.state.task_score or 0.0) * float(_demo_context.get("bonus_multiplier", 1.0)), 1.0),
         4,
@@ -159,27 +180,43 @@ def _serialize_demo() -> dict[str, object]:
 
 
 @app.post("/reset", response_model=ResetResponse, tags=["Environment Control"])
-def reset(request: ResetRequest = Body(default_factory=ResetRequest)) -> ResetResponse:
+def reset(
+    request: EnvironmentResetRequest = Body(default_factory=EnvironmentResetRequest),
+    task_id: str | None = Query(default=None),
+) -> ResetResponse:
+    requested_task_id = task_id or request.task_id
+    if requested_task_id is not None:
+        if requested_task_id not in TASKS:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unknown benchmark task_id '{requested_task_id}'.",
+            )
+        env = _set_openenv_env(requested_task_id)
+    elif _openenv_task_id is not None:
+        env = _set_openenv_env()
+    else:
+        env = _current_openenv_env()
+
     kwargs = {}
-    reset_signature = inspect.signature(_http_env.reset)
+    reset_signature = inspect.signature(env.reset)
     if "seed" in reset_signature.parameters and request.seed is not None:
         kwargs["seed"] = request.seed
     if "episode_id" in reset_signature.parameters and request.episode_id is not None:
         kwargs["episode_id"] = request.episode_id
-    observation = _http_env.reset(**kwargs)
+    observation = env.reset(**kwargs)
     return ResetResponse(**serialize_observation(observation))
 
 
 @app.post("/step", response_model=StepResponse, tags=["Environment Control"])
 def step(request: StepRequest) -> StepResponse:
     action = DispatchAction(**request.action)
-    observation = _http_env.step(action)
+    observation = _current_openenv_env().step(action)
     return StepResponse(**serialize_observation(observation))
 
 
 @app.get("/state", response_model=DispatchState, tags=["State Management"])
 def state() -> DispatchState:
-    return _http_env.state
+    return _current_openenv_env().state
 
 
 @app.get("/schema", response_model=SchemaResponse, tags=["Schema"])
@@ -215,7 +252,7 @@ def demo_reset(request: DemoResetRequest = Body(default_factory=DemoResetRequest
             "available_tasks": [card["task_id"] for card in list_demo_task_cards()],
         }
     task_id, _demo_context = resolve_demo_task(requested_task_id)
-    env = _set_env(task_id)
+    env = _set_demo_env(task_id)
     env.reset()
     return _serialize_demo()
 
@@ -223,16 +260,16 @@ def demo_reset(request: DemoResetRequest = Body(default_factory=DemoResetRequest
 @app.post("/demo/step")
 def demo_step(request: StepRequest) -> dict[str, object]:
     action = DispatchAction(**request.action)
-    observation = _current_env().step(action)
+    observation = _current_demo_env().step(action)
     payload = _serialize_demo()
     payload["observation"] = observation.model_dump(mode="json")
-    payload["state"] = _current_env().state.model_dump(mode="json")
+    payload["state"] = _current_demo_env().state.model_dump(mode="json")
     return payload
 
 
 @app.post("/demo/auto-step")
 def demo_auto_step() -> dict[str, object]:
-    env = _current_env()
+    env = _current_demo_env()
     observation = env.last_observation
     if observation.done:
         payload = _serialize_demo()
@@ -261,7 +298,7 @@ def demo_auto_wave() -> dict[str, object]:
     observation, trace = _dispatch_wave()
     payload = _serialize_demo()
     payload["observation"] = observation.model_dump(mode="json")
-    payload["state"] = _current_env().state.model_dump(mode="json")
+    payload["state"] = _current_demo_env().state.model_dump(mode="json")
     payload["trace"] = trace
     payload["steps_taken"] = len(trace)
     return payload
@@ -269,7 +306,7 @@ def demo_auto_wave() -> dict[str, object]:
 
 @app.post("/demo/auto-run")
 def demo_auto_run(request: DemoAutoRunRequest = Body(default_factory=DemoAutoRunRequest)) -> dict[str, object]:
-    env = _current_env()
+    env = _current_demo_env()
     observation = env.last_observation
     max_steps = request.max_steps or observation.max_steps
     trace: list[dict[str, object]] = []

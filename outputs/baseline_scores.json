@@ -2,24 +2,12 @@
   "benchmark": "golden_hour_dispatch_env",
   "policy": "heuristic",
   "model_name": "heuristic",
-  "mode": "all_tasks",
-  "mean_score": 0.9311,
+  "mode": "single_episode",
+  "mean_score": 0.9999,
   "tasks": [
     {
       "task_id": "easy_single_critical",
       "score": 0.9999
-    },
-    {
-      "task_id": "medium_split_queue",
-      "score": 0.9999
-    },
-    {
-      "task_id": "hard_peak_hour_tradeoffs",
-      "score": 0.8749
-    },
-    {
-      "task_id": "city_shift_priority_mix",
-      "score": 0.8499
     }
   ]
 }

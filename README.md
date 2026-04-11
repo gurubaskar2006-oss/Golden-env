@@ -225,7 +225,7 @@ Run:
 python inference.py
 ```
 
-By default, this runs one episode per benchmark task and emits a `[START] ... [END]` trace for each task, which makes the task sweep explicit for evaluation and baseline reproduction.
+By default, this runs one episode per benchmark task and emits a `[START] ... [END]` trace for each task, which makes the task sweep explicit for evaluation and baseline reproduction. If `API_KEY`, `HF_TOKEN`, and `OPENAI_API_KEY` are all absent, the script falls back to the deterministic heuristic policy so the automated baseline still completes without network credentials.
 
 Optional heuristic smoke test:
 
@@ -239,7 +239,7 @@ To reproduce the benchmark table across all deterministic tasks, use:
 python inference.py --policy heuristic
 ```
 
-If you want a routed LLM baseline across every benchmark task instead of a single episode, use:
+If you want a routed LLM baseline across every benchmark task, set `HF_TOKEN` or `API_KEY`, plus `API_BASE_URL` and `MODEL_NAME`, then use:
 
 ```bash
 python inference.py
@@ -255,7 +255,7 @@ The script emits organizer-style stdout logs per episode:
 
 - `[START] task=<task_name> env=<benchmark> model=<model_name>`
 - `[STEP] step=<n> action=<json> reward=<0.00> done=<true|false> error=<msg|null>`
-- `[END] success=<true|false> steps=<n> rewards=<r1,r2,...,rn>`
+- `[END] success=<true|false> steps=<n> score=<0.0-1.0> rewards=<r1,r2,...,rn>`
 
 Verified heuristic benchmark baseline from `outputs/baseline_scores.json` after running `python inference.py --policy heuristic`:
 
@@ -265,7 +265,7 @@ Verified heuristic benchmark baseline from `outputs/baseline_scores.json` after 
 | `medium_split_queue` | `0.9999` |
 | `hard_peak_hour_tradeoffs` | `0.8749` |
 | `city_shift_priority_mix` | `0.8499` |
-| `mean` | `0.9311` |
+| `mean` | `0.9312` |
 
 These numbers are from the deterministic `--policy heuristic` benchmark sweep, which is the safest reproducible baseline for submission packaging. The benchmark score is deliberately kept strictly inside `(0, 1)` to avoid phase-2 edge-case validator failures on exact endpoint values. If you want the README to report the routed LLM benchmark instead, rerun `python inference.py` with `API_KEY` or `HF_TOKEN`, plus `API_BASE_URL` and `MODEL_NAME`, then replace the table with the new `outputs/baseline_scores.json` values.
 

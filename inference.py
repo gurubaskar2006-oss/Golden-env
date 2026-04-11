@@ -76,10 +76,10 @@ def log_step(step: int, action: str, reward: float, done: bool, error: str | Non
     )
 
 
-def log_end(task: str, score: float, steps: int, success: bool, rewards: list[float]) -> None:
+def log_end(success: bool, steps: int, score: float, rewards: list[float]) -> None:
     rewards_str = ",".join(f"{reward:.2f}" for reward in rewards)
     print(
-        f"[END] task={task} score={score:.4f} steps={steps} success={str(success).lower()} rewards={rewards_str}",
+        f"[END] success={str(success).lower()} steps={steps} score={score:.4f} rewards={rewards_str}",
         flush=True,
     )
 
@@ -87,6 +87,7 @@ def log_end(task: str, score: float, steps: int, success: bool, rewards: list[fl
 def main() -> None:
     args = parse_args()
     client = build_openai_client(args.policy)
+    effective_policy = args.policy if args.policy == "heuristic" or client is not None else "heuristic"
 
     run_all_tasks = not args.single_episode
     if args.all_tasks:
@@ -105,13 +106,13 @@ def main() -> None:
     if LOCAL_IMAGE_NAME:
         reports = run_via_docker_client(
             client=client,
-            policy=args.policy,
+            policy=effective_policy,
             run_all_tasks=run_all_tasks,
         )
     else:
         reports = run_in_process(
             client=client,
-            policy=args.policy,
+            policy=effective_policy,
             run_all_tasks=run_all_tasks,
             task_id=args.task_id,
         )
@@ -119,8 +120,8 @@ def main() -> None:
     mean_score = round(sum(report["score"] for report in reports) / len(reports), 4) if reports else 0.0
     output = {
         "benchmark": BENCHMARK,
-        "policy": args.policy,
-        "model_name": MODEL_NAME if args.policy == "llm" else "heuristic",
+        "policy": effective_policy,
+        "model_name": MODEL_NAME if effective_policy == "llm" else "heuristic",
         "mode": "all_tasks" if run_all_tasks else "single_episode",
         "mean_score": mean_score,
         "tasks": reports,
@@ -133,7 +134,7 @@ def build_openai_client(policy: str) -> OpenAI | None:
     if policy != "llm":
         return None
     if not API_KEY:
-        raise RuntimeError("API_KEY (or HF_TOKEN/OPENAI_API_KEY fallback) must be set for the LLM baseline.")
+        return None
     return OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
 
 
@@ -241,7 +242,7 @@ def run_episode(
                 success = False
         elif final_state is not None:
             end_score = float(final_state.task_score or 0.5001)
-        log_end(task=task_id, score=end_score, steps=steps_taken, success=success, rewards=rewards)
+        log_end(success=success, steps=steps_taken, score=end_score, rewards=rewards)
 
 
 def choose_action(
@@ -252,13 +253,16 @@ def choose_action(
     if policy == "heuristic":
         action = heuristic_action(observation)
         return action, action_to_log_string(action), None
+    if client is None:
+        action = heuristic_action(observation)
+        return action, action_to_log_string(action), None
 
     try:
         action = choose_with_llm(client=client, observation=observation)
         return action, action_to_log_string(action), None
     except Exception as exc:
         action = heuristic_action(observation)
-        return action, action_to_log_string(action), str(exc)
+        return action, action_to_log_string(action), str(exc).replace("\r", " ").replace("\n", " ")
 
 
 def choose_with_llm(client: OpenAI, observation: DispatchObservation) -> DispatchAction:
@@ -285,11 +289,19 @@ def choose_with_llm(client: OpenAI, observation: DispatchObservation) -> Dispatc
 def heuristic_action(observation: DispatchObservation) -> DispatchAction:
     if not observation.available_dispatches:
         raise RuntimeError("No valid dispatches are available and the episode should already be done.")
+    incident_by_id = {incident.incident_id: incident for incident in observation.incidents}
+    critical_candidates = [
+        candidate
+        for candidate in observation.available_dispatches
+        if incident_by_id.get(candidate.incident_id) and incident_by_id[candidate.incident_id].triage == "108"
+    ]
+    candidate_pool = critical_candidates or observation.available_dispatches
     best = max(
-        observation.available_dispatches,
+        candidate_pool,
         key=lambda candidate: (
             candidate.weighted_survival,
             candidate.predicted_survival,
+            -candidate.scene_eta_minutes,
         ),
     )
     return DispatchAction(
@@ -297,12 +309,16 @@ def heuristic_action(observation: DispatchObservation) -> DispatchAction:
         incident_id=best.incident_id,
         hospital_id=best.hospital_id,
         use_green_corridor=best.use_green_corridor,
-        rationale="Selected the highest weighted-survival valid candidate.",
+        rationale=(
+            "Prioritized an active 108 emergency, then selected the highest weighted-survival candidate."
+            if critical_candidates
+            else "Selected the highest weighted-survival valid candidate."
+        ),
     )
 
 
 def action_to_log_string(action: DispatchAction) -> str:
-    payload = action.model_dump(exclude_none=True)
+    payload = action.model_dump(exclude_none=True, exclude={"metadata"})
     return json.dumps(payload, separators=(",", ":"))
 
 
