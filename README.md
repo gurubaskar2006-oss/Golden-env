@@ -260,7 +260,7 @@ The required baseline script is `inference.py`. It uses the OpenAI client and re
 
 - `API_BASE_URL`
 - `MODEL_NAME`
-- `API_KEY` first, then `HF_TOKEN` as a fallback for local/HF Router usage
+- `HF_TOKEN`
 - `LOCAL_IMAGE_NAME` optionally, if you want the script to connect through `from_docker_image(...)` instead of the in-process fallback
 
 Run:
@@ -269,7 +269,7 @@ Run:
 python inference.py
 ```
 
-By default, this runs one episode per benchmark task and emits a `[START] ... [END]` trace for each task, which makes the task sweep explicit for evaluation and baseline reproduction. If `API_KEY`, `HF_TOKEN`, and `OPENAI_API_KEY` are all absent, the script falls back to the deterministic heuristic policy so the automated baseline still completes without network credentials.
+By default, this runs one episode per benchmark task and emits a `[START] ... [END]` trace for each task, which makes the task sweep explicit for evaluation and baseline reproduction. If `HF_TOKEN` is absent, the script falls back to the deterministic heuristic policy so the automated baseline still completes without network credentials. The routed LLM path uses `HF_TOKEN` through the OpenAI client.
 
 Optional heuristic smoke test:
 
@@ -283,7 +283,7 @@ To reproduce the benchmark table across all deterministic tasks, use:
 python inference.py --policy heuristic
 ```
 
-If you want a routed LLM baseline across every benchmark task, set `HF_TOKEN` or `API_KEY`, plus `API_BASE_URL` and `MODEL_NAME`, then use:
+If you want a routed LLM baseline across every benchmark task, set `HF_TOKEN`, plus `API_BASE_URL` and `MODEL_NAME`, then use:
 
 ```bash
 python inference.py
@@ -299,7 +299,7 @@ The script emits organizer-style stdout logs per episode:
 
 - `[START] task=<task_name> env=<benchmark> model=<model_name>`
 - `[STEP] step=<n> action=<json> reward=<0.00> done=<true|false> error=<msg|null>`
-- `[END] success=<true|false> steps=<n> score=<0.0-1.0> rewards=<r1,r2,...,rn>`
+- `[END] success=<true|false> steps=<n> rewards=<r1,r2,...,rn>`
 
 Verified benchmark baselines:
 
@@ -321,7 +321,7 @@ Before submission, treat the deterministic benchmark path as frozen and verify t
 2. `openenv validate`
 3. `python inference.py --policy heuristic --single-episode`
 4. `python inference.py --policy heuristic`
-5. `python inference.py` with `API_KEY` or `HF_TOKEN`, plus `API_BASE_URL` and `MODEL_NAME`
+5. `python inference.py` with `HF_TOKEN`, plus `API_BASE_URL` and `MODEL_NAME`
 6. if you want a routed single-episode smoke test, run `python inference.py --single-episode`
 7. update the README score table with real baseline values
 8. make the Hugging Face Space public

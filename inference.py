@@ -16,7 +16,6 @@ from golden_hour_dispatch_env.task_bank import TASKS
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
 HF_TOKEN = os.getenv("HF_TOKEN")
-API_KEY = os.getenv("API_KEY") or HF_TOKEN or os.getenv("OPENAI_API_KEY")
 LOCAL_IMAGE_NAME = os.getenv("LOCAL_IMAGE_NAME")
 BENCHMARK = "golden_hour_dispatch_env"
 SUCCESS_SCORE_THRESHOLD = float(os.getenv("SUCCESS_SCORE_THRESHOLD", "0.65"))
@@ -76,10 +75,10 @@ def log_step(step: int, action: str, reward: float, done: bool, error: str | Non
     )
 
 
-def log_end(success: bool, steps: int, score: float, rewards: list[float]) -> None:
+def log_end(success: bool, steps: int, rewards: list[float]) -> None:
     rewards_str = ",".join(f"{reward:.2f}" for reward in rewards)
     print(
-        f"[END] success={str(success).lower()} steps={steps} score={score:.4f} rewards={rewards_str}",
+        f"[END] success={str(success).lower()} steps={steps} rewards={rewards_str}",
         flush=True,
     )
 
@@ -138,9 +137,9 @@ def main() -> None:
 def build_openai_client(policy: str) -> OpenAI | None:
     if policy != "llm":
         return None
-    if not API_KEY:
+    if not HF_TOKEN:
         return None
-    return OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
+    return OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
 
 
 def run_in_process(
@@ -247,7 +246,7 @@ def run_episode(
                 success = False
         elif final_state is not None:
             end_score = float(final_state.task_score or 0.5001)
-        log_end(success=success, steps=steps_taken, score=end_score, rewards=rewards)
+        log_end(success=success, steps=steps_taken, rewards=rewards)
 
 
 def choose_action(
