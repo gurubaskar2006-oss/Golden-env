@@ -301,17 +301,17 @@ The script emits organizer-style stdout logs per episode:
 - `[STEP] step=<n> action=<json> reward=<0.00> done=<true|false> error=<msg|null>`
 - `[END] success=<true|false> steps=<n> score=<0.0-1.0> rewards=<r1,r2,...,rn>`
 
-Verified heuristic benchmark baseline from `outputs/baseline_scores.json` after running `python inference.py --policy heuristic`:
+Verified benchmark baselines:
 
-| Task | Score |
-| --- | --- |
-| `easy_single_critical` | `0.9999` |
-| `medium_split_queue` | `0.9999` |
-| `hard_peak_hour_tradeoffs` | `0.8749` |
-| `city_shift_priority_mix` | `0.8499` |
-| `mean` | `0.9312` |
+| Task | Heuristic score | LLM score (`Qwen/Qwen2.5-72B-Instruct`) |
+| --- | --- | --- |
+| `easy_single_critical` | `0.9999` | `0.9999` |
+| `medium_split_queue` | `0.9999` | `0.9999` |
+| `hard_peak_hour_tradeoffs` | `0.8749` | `0.8749` |
+| `city_shift_priority_mix` | `0.8499` | `0.8499` |
+| `mean` | `0.9312` | `0.9312` |
 
-These numbers are from the deterministic `--policy heuristic` benchmark sweep, which is the safest reproducible baseline for submission packaging. The benchmark score is deliberately kept strictly inside `(0, 1)` to avoid phase-2 edge-case validator failures on exact endpoint values. If you want the README to report the routed LLM benchmark instead, rerun `python inference.py` with `API_KEY` or `HF_TOKEN`, plus `API_BASE_URL` and `MODEL_NAME`, then replace the table with the new `outputs/baseline_scores.json` values.
+The heuristic values are stored in `outputs/baseline_scores_heuristic.json`. The routed LLM values are stored in both `outputs/baseline_scores_llm.json` and the primary `outputs/baseline_scores.json` after running `python inference.py --policy llm --all-tasks` with `HF_TOKEN`, `API_BASE_URL`, and `MODEL_NAME` set. Scores are deliberately kept strictly inside `(0, 1)` to avoid validator edge cases on exact endpoint values.
 
 ## Submission Lock Checklist
 
