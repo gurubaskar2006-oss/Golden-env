@@ -5,7 +5,7 @@ from typing import Any
 
 from golden_hour_dispatch_env.graders import grade_state
 
-SCORE_EPSILON = 1e-4
+SCORE_EPSILON = 1e-3
 FALLBACK_SCORE = SCORE_EPSILON
 
 

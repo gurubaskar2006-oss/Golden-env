@@ -1219,13 +1219,13 @@ def render_dashboard() -> str:
           function formatScore(value) {
             const numeric = Number(value || 0);
             if (!Number.isFinite(numeric)) {
-              return "0.0001";
+              return "0.001";
             }
-            if (numeric >= 0.9999) {
-              return "0.9999";
+            if (numeric >= 0.999) {
+              return "0.999";
             }
-            if (numeric <= 0.0001) {
-              return "0.0001";
+            if (numeric <= 0.001) {
+              return "0.001";
             }
             return numeric.toFixed(4);
           }

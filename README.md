@@ -127,7 +127,7 @@ Inspect the final state and deterministic score:
 curl http://localhost:8000/state
 ```
 
-Expected benchmark score range is strict `(0, 1)`, exposed as `0.0001` to `0.9999`.
+Expected benchmark score range is strict `(0, 1)`, exposed as `0.001` to `0.999`.
 
 ## Reward design
 
@@ -305,11 +305,11 @@ Verified benchmark baselines:
 
 | Task | Heuristic score | LLM score (`Qwen/Qwen2.5-72B-Instruct`) |
 | --- | --- | --- |
-| `easy_single_critical` | `0.9999` | `0.9999` |
-| `medium_split_queue` | `0.9999` | `0.9999` |
-| `hard_peak_hour_tradeoffs` | `0.8749` | `0.8749` |
-| `city_shift_priority_mix` | `0.8499` | `0.8499` |
-| `mean` | `0.9312` | `0.9312` |
+| `easy_single_critical` | `0.999` | `0.999` |
+| `medium_split_queue` | `0.999` | `0.999` |
+| `hard_peak_hour_tradeoffs` | `0.8743` | `0.8743` |
+| `city_shift_priority_mix` | `0.8493` | `0.8493` |
+| `mean` | `0.9304` | `0.9304` |
 
 The heuristic values are stored in `outputs/baseline_scores_heuristic.json`. The routed LLM values are stored in both `outputs/baseline_scores_llm.json` and the primary `outputs/baseline_scores.json` after running `python inference.py --policy llm --all-tasks` with `HF_TOKEN`, `API_BASE_URL`, and `MODEL_NAME` set. Scores are deliberately kept strictly inside `(0, 1)` to avoid validator edge cases on exact endpoint values.
 

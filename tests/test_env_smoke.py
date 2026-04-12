@@ -51,14 +51,14 @@ def test_tasks_can_reset_and_finish() -> None:
             )
             assert observation.reward == observation.reward_breakdown.total_reward
         graded = grade_state(env.state)
-        assert 0.0 <= graded["score"] <= 1.0
+        assert 0.0 < graded["score"] < 1.0
         assert 0.7 < TASK_GRADERS[task_id](env.state) < 1.0
         assert env.state.last_reward_breakdown.total_reward == observation.reward_breakdown.total_reward
 
 
 def test_task_graders_penalize_missing_payloads() -> None:
     for grader in TASK_GRADERS.values():
-        assert grader(None) == 0.0001
+        assert grader(None) == 0.001
 
 
 def test_incidents_have_explicit_hospital_specialties() -> None:

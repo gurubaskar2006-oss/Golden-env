@@ -18,6 +18,7 @@ MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
 HF_TOKEN = os.getenv("HF_TOKEN")
 LOCAL_IMAGE_NAME = os.getenv("LOCAL_IMAGE_NAME")
 BENCHMARK = "golden_hour_dispatch_env"
+SCORE_EPSILON = 1e-3
 SUCCESS_SCORE_THRESHOLD = float(os.getenv("SUCCESS_SCORE_THRESHOLD", "0.65"))
 MAX_STEPS_OVERRIDE = os.getenv("MAX_STEPS")
 
@@ -73,6 +74,10 @@ def log_step(step: int, action: str, reward: float, done: bool, error: str | Non
         f"[STEP] step={step} action={action} reward={reward:.2f} done={str(done).lower()} error={error_value}",
         flush=True,
     )
+
+
+def clamp_task_score(value: float) -> float:
+    return round(max(SCORE_EPSILON, min(1.0 - SCORE_EPSILON, float(value))), 4)
 
 
 def log_end(success: bool, steps: int, rewards: list[float]) -> None:
@@ -228,11 +233,11 @@ def run_episode(
                 break
 
         final_state = env.state if not callable(getattr(env, "state", None)) else env.state()
-        score = float(final_state.task_score or 0.0)
+        score = clamp_task_score(final_state.task_score or 0.0)
         success = score >= SUCCESS_SCORE_THRESHOLD
         report = {
             "task_id": task_id,
-            "score": round(score, 4),
+            "score": score,
         }
         return report
     finally:
@@ -240,12 +245,12 @@ def run_episode(
         if final_state is None and observation is not None:
             try:
                 final_state = env.state if not callable(getattr(env, "state", None)) else env.state()
-                end_score = float(final_state.task_score or 0.5001)
+                end_score = clamp_task_score(final_state.task_score or 0.5001)
                 success = end_score >= SUCCESS_SCORE_THRESHOLD
             except Exception:
                 success = False
         elif final_state is not None:
-            end_score = float(final_state.task_score or 0.5001)
+            end_score = clamp_task_score(final_state.task_score or 0.5001)
         log_end(success=success, steps=steps_taken, rewards=rewards)
 
 
