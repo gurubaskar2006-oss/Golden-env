@@ -47,7 +47,7 @@ TRAFFIC_PHASE_FACTORS = {
     "peak_commute": 1.18,
     "gridlock_peak": 1.34,
 }
-SCORE_EPSILON = 1e-3
+SCORE_EPSILON = 1e-2
 
 
 def _clamp_score_metric(value: float) -> float:

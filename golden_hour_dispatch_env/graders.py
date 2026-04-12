@@ -3,7 +3,7 @@ from __future__ import annotations
 from .models import DispatchState
 from .task_bank import TASKS, list_task_cards
 
-SCORE_EPSILON = 1e-3
+SCORE_EPSILON = 1e-2
 
 
 def _clamp_score_metric(value: float) -> float:

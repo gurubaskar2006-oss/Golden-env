@@ -3,23 +3,23 @@
   "policy": "heuristic",
   "model_name": "heuristic",
   "mode": "all_tasks",
-  "mean_score": 0.9304,
+  "mean_score": 0.9227,
   "tasks": [
     {
       "task_id": "easy_single_critical",
-      "score": 0.999
+      "score": 0.99
     },
     {
       "task_id": "medium_split_queue",
-      "score": 0.999
+      "score": 0.99
     },
     {
       "task_id": "hard_peak_hour_tradeoffs",
-      "score": 0.8743
+      "score": 0.868
     },
     {
       "task_id": "city_shift_priority_mix",
-      "score": 0.8493
+      "score": 0.843
     }
   ]
 }

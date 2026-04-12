@@ -58,7 +58,7 @@ def test_tasks_can_reset_and_finish() -> None:
 
 def test_task_graders_penalize_missing_payloads() -> None:
     for grader in TASK_GRADERS.values():
-        assert grader(None) == 0.001
+        assert grader(None) == 0.01
 
 
 def test_incidents_have_explicit_hospital_specialties() -> None:

@@ -173,5 +173,5 @@ class DispatchState(State):
     hospitals: list[HospitalSnapshot] = Field(default_factory=list)
     decision_log: list[DecisionLogEntry] = Field(default_factory=list)
     last_reward_breakdown: RewardBreakdown = Field(default_factory=RewardBreakdown)
-    task_score: float | None = Field(default=None, ge=0.0, le=1.0)
+    task_score: float | None = Field(default=None, gt=0.0, lt=1.0)
     score_breakdown: dict[str, float] = Field(default_factory=dict)

@@ -18,7 +18,7 @@ MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
 HF_TOKEN = os.getenv("HF_TOKEN")
 LOCAL_IMAGE_NAME = os.getenv("LOCAL_IMAGE_NAME")
 BENCHMARK = "golden_hour_dispatch_env"
-SCORE_EPSILON = 1e-3
+SCORE_EPSILON = 1e-2
 SUCCESS_SCORE_THRESHOLD = float(os.getenv("SUCCESS_SCORE_THRESHOLD", "0.65"))
 MAX_STEPS_OVERRIDE = os.getenv("MAX_STEPS")
 
@@ -80,10 +80,11 @@ def clamp_task_score(value: float) -> float:
     return round(max(SCORE_EPSILON, min(1.0 - SCORE_EPSILON, float(value))), 4)
 
 
-def log_end(success: bool, steps: int, rewards: list[float]) -> None:
+def log_end(success: bool, steps: int, score: float, rewards: list[float]) -> None:
     rewards_str = ",".join(f"{reward:.2f}" for reward in rewards)
+    safe_score = clamp_task_score(score)
     print(
-        f"[END] success={str(success).lower()} steps={steps} rewards={rewards_str}",
+        f"[END] success={str(success).lower()} steps={steps} score={safe_score:.3f} rewards={rewards_str}",
         flush=True,
     )
 
@@ -251,7 +252,7 @@ def run_episode(
                 success = False
         elif final_state is not None:
             end_score = clamp_task_score(final_state.task_score or 0.5001)
-        log_end(success=success, steps=steps_taken, rewards=rewards)
+        log_end(success=success, steps=steps_taken, score=end_score, rewards=rewards)
 
 
 def choose_action(
