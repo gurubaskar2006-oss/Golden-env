@@ -26,6 +26,14 @@ This environment is designed for real-world utility instead of toy routing. It m
 - Real constraints: traffic, fuel reserve, hospital capability, and unavailable ambulances all matter.
 - Tamil Nadu-specific framing: `108` covers acute emergencies, trauma, and cardiac events with ALS support, while `102` covers maternal and newborn transport through the public health system.
 
+## Human Evaluation Alignment
+
+- Problem relevance: the environment models emergency medical dispatch, a high-stakes public-service workflow with real prioritization pressure.
+- Environment design quality: the task is not a static classifier or toy route planner; each step recomputes valid assignments from ambulance availability, support level, fuel reserve, traffic, hospital specialty, capacity, and green-corridor budget.
+- Meaningful grader logic: final scores combine weighted survival versus an oracle optimum, incident coverage, critical `108` coverage, and action hygiene so agents are judged on operational outcomes rather than only on reaching a destination.
+- Code quality: typed OpenEnv action, observation, and state models are separated from the simulator, task bank, grader functions, server wrapper, dashboard endpoints, and baseline runner.
+- Innovation: the environment combines RL-style dense rewards with a domain-specific EMS control-room scenario, separating benchmark tasks from richer showcase shifts for human inspection.
+
 ## Environment summary
 
 - Domain: emergency dispatch
@@ -79,11 +87,47 @@ Each `DispatchObservation` includes:
 - ambulance snapshots
 - incident snapshots
 - hospital snapshots
-- valid dispatch candidates with predicted survival and fuel impact
+- valid dispatch candidates with predicted survival, required hospital specialty, and fuel impact
 - masked action reasons
 - decision log
 - per-step `reward_breakdown` for transparent learning signals
 - natural-language summary for agent prompting
+
+## Sample API Interaction
+
+Reset the current benchmark episode:
+
+```bash
+curl -X POST http://localhost:8000/reset \
+  -H "Content-Type: application/json" \
+  -d "{}"
+```
+
+The response contains a normalized OpenEnv observation with task metadata, current fleet state, active incidents, hospital capacity, and `available_dispatches`. A typical first task id is `easy_single_critical`.
+
+Dispatch one valid candidate:
+
+```bash
+curl -X POST http://localhost:8000/step \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": {
+      "ambulance_id": "AMB-ALS-CENTRAL",
+      "incident_id": "INC-108-CARDIAC-TNAGAR",
+      "hospital_id": "HOSP-APOLLO",
+      "use_green_corridor": true,
+      "rationale": "Fastest compatible ALS response for the active 108 cardiac case."
+    }
+  }'
+```
+
+Inspect the final state and deterministic score:
+
+```bash
+curl http://localhost:8000/state
+```
+
+Expected benchmark score range is strict `(0, 1)`, exposed as `0.0001` to `0.9999`.
 
 ## Reward design
 

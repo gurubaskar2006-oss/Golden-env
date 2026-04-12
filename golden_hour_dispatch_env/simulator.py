@@ -117,6 +117,7 @@ class MutableIncident:
     decay_rate: float
     required_support: str
     required_hospital_level: int
+    required_specialty: str
     description: str
     priority_weight: float
     status: str = "pending"
@@ -205,6 +206,7 @@ def create_episode(task_id: str) -> SimulationSnapshot:
                 decay_rate=cfg.decay_rate,
                 required_support=cfg.required_support,
                 required_hospital_level=cfg.required_hospital_level,
+                required_specialty=cfg.required_specialty,
                 description=cfg.description,
                 priority_weight=cfg.priority_weight,
             )
@@ -670,6 +672,7 @@ def incident_snapshots(snapshot: SimulationSnapshot) -> list[IncidentSnapshot]:
                 wait_minutes=round(wait_minutes, 2),
                 required_support=SupportLevel(incident.required_support),
                 required_hospital_level=incident.required_hospital_level,
+                required_specialty=incident.required_specialty,
                 decay_rate=incident.decay_rate,
                 description=incident.description,
             )
@@ -930,8 +933,7 @@ def support_is_compatible(ambulance_support: str, required_support: str) -> bool
 
 
 def hospital_supports_incident(hospital: MutableHospital, incident: MutableIncident) -> bool:
-    specialty = "maternity" if incident.required_support == "maternal" else "cardiac" if "CARDIAC" in incident.incident_id else "trauma"
-    return specialty in hospital.specialties
+    return incident.required_specialty in hospital.specialties
 
 
 def _should_reserve_advanced_unit(

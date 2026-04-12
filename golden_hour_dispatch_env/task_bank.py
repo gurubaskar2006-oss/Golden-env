@@ -45,6 +45,7 @@ class IncidentConfig:
     required_hospital_level: int
     description: str
     priority_weight: float
+    required_specialty: str = "trauma"
 
 
 @dataclass(frozen=True)
@@ -145,8 +146,8 @@ TASKS: dict[str, TaskConfig] = {
             AmbulanceConfig("AMB-MAT-EGM", "102 Maternal Egmore", "egmore", "maternal", 78),
         ),
         hospitals=(
-            HospitalConfig("HOSP-RGGH", "Rajiv Gandhi GH", "egmore", 1, 16, 7, ("cardiac", "trauma")),
-            HospitalConfig("HOSP-APOLLO", "Apollo Greams", "greams_road", 1, 14, 6, ("cardiac", "trauma")),
+            HospitalConfig("HOSP-RGGH", "Rajiv Gandhi GH", "egmore", 1, 16, 7, ("cardiac", "trauma", "stroke")),
+            HospitalConfig("HOSP-APOLLO", "Apollo Greams", "greams_road", 1, 14, 6, ("cardiac", "trauma", "stroke")),
         ),
         incidents=(
             IncidentConfig(
@@ -160,6 +161,7 @@ TASKS: dict[str, TaskConfig] = {
                 1,
                 "A severe cardiac emergency has been reported near a busy shopping corridor.",
                 5.0,
+                required_specialty="cardiac",
             ),
         ),
     ),
@@ -184,8 +186,8 @@ TASKS: dict[str, TaskConfig] = {
             AmbulanceConfig("AMB-ALS-OMR", "ALS OMR Reserve", "omr", "advanced", 18),
         ),
         hospitals=(
-            HospitalConfig("HOSP-RGGH", "Rajiv Gandhi GH", "egmore", 1, 16, 9, ("cardiac", "trauma")),
-            HospitalConfig("HOSP-APOLLO", "Apollo Greams", "greams_road", 1, 14, 7, ("cardiac", "trauma")),
+            HospitalConfig("HOSP-RGGH", "Rajiv Gandhi GH", "egmore", 1, 16, 9, ("cardiac", "trauma", "stroke")),
+            HospitalConfig("HOSP-APOLLO", "Apollo Greams", "greams_road", 1, 14, 7, ("cardiac", "trauma", "stroke")),
             HospitalConfig("HOSP-IOG", "Institute of Obstetrics", "egmore", 2, 18, 11, ("maternity",)),
         ),
         incidents=(
@@ -200,6 +202,7 @@ TASKS: dict[str, TaskConfig] = {
                 1,
                 "A bus passenger has collapsed with chest pain and cardiac arrest signs.",
                 5.0,
+                required_specialty="cardiac",
             ),
             IncidentConfig(
                 "INC-102-MATERNITY-PORUR",
@@ -212,6 +215,7 @@ TASKS: dict[str, TaskConfig] = {
                 2,
                 "A woman in active labour with complications needs monitored transport to a maternity center.",
                 2.8,
+                required_specialty="maternity",
             ),
         ),
     ),
@@ -235,8 +239,8 @@ TASKS: dict[str, TaskConfig] = {
             AmbulanceConfig("AMB-MAT-EGM", "Maternal Egmore", "egmore", "maternal", 75),
         ),
         hospitals=(
-            HospitalConfig("HOSP-RGGH", "Rajiv Gandhi GH", "egmore", 1, 10, 10, ("cardiac", "trauma")),
-            HospitalConfig("HOSP-APOLLO", "Apollo Greams", "greams_road", 1, 16, 10, ("cardiac", "trauma")),
+            HospitalConfig("HOSP-RGGH", "Rajiv Gandhi GH", "egmore", 1, 10, 10, ("cardiac", "trauma", "stroke")),
+            HospitalConfig("HOSP-APOLLO", "Apollo Greams", "greams_road", 1, 16, 10, ("cardiac", "trauma", "stroke")),
             HospitalConfig("HOSP-IOG", "Institute of Obstetrics", "egmore", 2, 18, 12, ("maternity",)),
         ),
         incidents=(
@@ -263,6 +267,7 @@ TASKS: dict[str, TaskConfig] = {
                 1,
                 "A corporate shuttle passenger has collapsed and CPR is in progress.",
                 5.0,
+                required_specialty="cardiac",
             ),
             IncidentConfig(
                 "INC-102-MATERNITY-MARINA",
@@ -275,6 +280,7 @@ TASKS: dict[str, TaskConfig] = {
                 2,
                 "A high-risk pregnancy patient requires monitored transfer to a maternity center.",
                 2.8,
+                required_specialty="maternity",
             ),
         ),
     ),
@@ -298,8 +304,8 @@ TASKS: dict[str, TaskConfig] = {
             AmbulanceConfig("AMB-MAT-CENTRAL", "Maternal Central", "egmore", "maternal", 73),
         ),
         hospitals=(
-            HospitalConfig("HOSP-RGGH", "Rajiv Gandhi GH", "egmore", 1, 18, 12, ("cardiac", "trauma")),
-            HospitalConfig("HOSP-APOLLO", "Apollo Greams", "greams_road", 1, 15, 9, ("cardiac", "trauma")),
+            HospitalConfig("HOSP-RGGH", "Rajiv Gandhi GH", "egmore", 1, 18, 12, ("cardiac", "trauma", "stroke")),
+            HospitalConfig("HOSP-APOLLO", "Apollo Greams", "greams_road", 1, 15, 9, ("cardiac", "trauma", "stroke")),
             HospitalConfig("HOSP-KMC", "Kilpauk Medical", "kilpauk", 2, 20, 11, ("trauma",)),
             HospitalConfig("HOSP-IOG", "Institute of Obstetrics", "egmore", 2, 18, 10, ("maternity",)),
         ),
@@ -315,6 +321,7 @@ TASKS: dict[str, TaskConfig] = {
                 1,
                 "A severe heart attack has been reported near the Kathipara interchange.",
                 5.5,
+                required_specialty="cardiac",
             ),
             IncidentConfig(
                 "INC-108-TRAUMA-OMR",
@@ -339,6 +346,7 @@ TASKS: dict[str, TaskConfig] = {
                 2,
                 "A late-stage labour patient needs a monitored transfer without delay.",
                 3.0,
+                required_specialty="maternity",
             ),
             IncidentConfig(
                 "INC-102-NEWBORN-TBM",
@@ -351,6 +359,7 @@ TASKS: dict[str, TaskConfig] = {
                 2,
                 "A newborn requires monitored referral transport with mother to a higher-level government facility.",
                 2.6,
+                required_specialty="maternity",
             ),
         ),
     ),
@@ -381,8 +390,8 @@ DEMO_TASKS: dict[str, TaskConfig] = {
             AmbulanceConfig("AMB-102-WEST", "102 Maternal West", "koyambedu", "maternal", 79),
         ),
         hospitals=(
-            HospitalConfig("HOSP-RGGH", "Rajiv Gandhi GH", "egmore", 1, 18, 10, ("cardiac", "trauma")),
-            HospitalConfig("HOSP-APOLLO", "Apollo Greams", "greams_road", 1, 16, 8, ("cardiac", "trauma")),
+            HospitalConfig("HOSP-RGGH", "Rajiv Gandhi GH", "egmore", 1, 18, 10, ("cardiac", "trauma", "stroke")),
+            HospitalConfig("HOSP-APOLLO", "Apollo Greams", "greams_road", 1, 16, 8, ("cardiac", "trauma", "stroke")),
             HospitalConfig("HOSP-KMC", "Kilpauk Medical", "kilpauk", 2, 20, 9, ("trauma",)),
             HospitalConfig("HOSP-IOG", "Institute of Obstetrics", "egmore", 2, 20, 11, ("maternity",)),
             HospitalConfig("HOSP-KASTURBA", "Kasturba GH", "marina", 2, 18, 9, ("maternity", "newborn")),
@@ -399,6 +408,7 @@ DEMO_TASKS: dict[str, TaskConfig] = {
                 1,
                 "A middle-aged commuter has collapsed at the bus terminus with cardiac arrest signs.",
                 5.5,
+                required_specialty="cardiac",
             ),
             IncidentConfig(
                 "INC-108-TRAUMA-OMR-SURGE",
@@ -423,6 +433,7 @@ DEMO_TASKS: dict[str, TaskConfig] = {
                 1,
                 "A possible stroke patient in Tambaram is losing speech and motor control during a narrow treatment window.",
                 4.8,
+                required_specialty="stroke",
             ),
             IncidentConfig(
                 "INC-102-MATERNITY-ANNA-SURGE",
@@ -435,6 +446,7 @@ DEMO_TASKS: dict[str, TaskConfig] = {
                 2,
                 "A late-stage labour patient with elevated blood pressure needs monitored transfer to a maternity center.",
                 3.1,
+                required_specialty="maternity",
             ),
             IncidentConfig(
                 "INC-102-NEWBORN-VEL-SURGE",
@@ -447,6 +459,7 @@ DEMO_TASKS: dict[str, TaskConfig] = {
                 2,
                 "A newborn and mother need monitored referral transfer from south Chennai to a higher-level neonatal facility.",
                 2.9,
+                required_specialty="maternity",
             ),
             IncidentConfig(
                 "INC-102-PREGNANCY-PORUR-SURGE",
@@ -459,6 +472,7 @@ DEMO_TASKS: dict[str, TaskConfig] = {
                 2,
                 "An antenatal patient at Porur has complications and requires monitored maternal transport.",
                 2.7,
+                required_specialty="maternity",
             ),
         ),
         reference_optimal_weighted_survival=24.4,
@@ -484,8 +498,8 @@ DEMO_TASKS: dict[str, TaskConfig] = {
             AmbulanceConfig("AMB-MAT-EGM", "102 Maternal Egmore", "egmore", "maternal", 82),
         ),
         hospitals=(
-            HospitalConfig("HOSP-RGGH", "Rajiv Gandhi GH", "egmore", 1, 18, 10, ("cardiac", "trauma")),
-            HospitalConfig("HOSP-APOLLO", "Apollo Greams", "greams_road", 1, 15, 8, ("cardiac", "trauma")),
+            HospitalConfig("HOSP-RGGH", "Rajiv Gandhi GH", "egmore", 1, 18, 10, ("cardiac", "trauma", "stroke")),
+            HospitalConfig("HOSP-APOLLO", "Apollo Greams", "greams_road", 1, 15, 8, ("cardiac", "trauma", "stroke")),
             HospitalConfig("HOSP-KMC", "Kilpauk Medical", "kilpauk", 2, 18, 8, ("trauma",)),
             HospitalConfig("HOSP-IOG", "Institute of Obstetrics", "egmore", 2, 20, 11, ("maternity",)),
         ),
@@ -501,6 +515,7 @@ DEMO_TASKS: dict[str, TaskConfig] = {
                 1,
                 "A commuter has collapsed near the Kathipara flyover and bystanders have started CPR.",
                 5.5,
+                required_specialty="cardiac",
             ),
             IncidentConfig(
                 "INC-108-TRAUMA-OMR-DEMO",
@@ -525,6 +540,7 @@ DEMO_TASKS: dict[str, TaskConfig] = {
                 2,
                 "A late-stage labour patient needs monitored transfer to a government maternity centre.",
                 3.0,
+                required_specialty="maternity",
             ),
         ),
     ),
@@ -548,8 +564,8 @@ DEMO_TASKS: dict[str, TaskConfig] = {
             AmbulanceConfig("AMB-MAT-EGM", "102 Maternal Egmore", "egmore", "maternal", 80),
         ),
         hospitals=(
-            HospitalConfig("HOSP-RGGH", "Rajiv Gandhi GH", "egmore", 1, 18, 11, ("cardiac", "trauma")),
-            HospitalConfig("HOSP-APOLLO", "Apollo Greams", "greams_road", 1, 15, 9, ("cardiac", "trauma")),
+            HospitalConfig("HOSP-RGGH", "Rajiv Gandhi GH", "egmore", 1, 18, 11, ("cardiac", "trauma", "stroke")),
+            HospitalConfig("HOSP-APOLLO", "Apollo Greams", "greams_road", 1, 15, 9, ("cardiac", "trauma", "stroke")),
             HospitalConfig("HOSP-KMC", "Kilpauk Medical", "kilpauk", 2, 20, 10, ("trauma",)),
             HospitalConfig("HOSP-IOG", "Institute of Obstetrics", "egmore", 2, 19, 10, ("maternity",)),
         ),
@@ -565,6 +581,7 @@ DEMO_TASKS: dict[str, TaskConfig] = {
                 1,
                 "A possible stroke has been reported near Porur in heavy rain, with a narrow intervention window.",
                 5.1,
+                required_specialty="stroke",
             ),
             IncidentConfig(
                 "INC-108-TRAUMA-TBM-DEMO",
@@ -589,6 +606,7 @@ DEMO_TASKS: dict[str, TaskConfig] = {
                 2,
                 "A newborn and mother need monitored referral transfer from south Chennai to a higher-level facility.",
                 2.8,
+                required_specialty="maternity",
             ),
         ),
     ),

@@ -64,6 +64,7 @@ def _remove_default_route(path: str, method: str) -> None:
 
 
 for _path, _method in (
+    ("/health", "GET"),
     ("/reset", "POST"),
     ("/step", "POST"),
     ("/state", "GET"),
@@ -75,6 +76,11 @@ for _path, _method in (
 @app.get("/", response_class=HTMLResponse)
 def root() -> str:
     return render_dashboard()
+
+
+@app.get("/health")
+def health() -> dict[str, str]:
+    return {"status": "healthy"}
 
 
 def _set_openenv_env(task_id: str | None = None) -> GoldenHourDispatchEnvironment:

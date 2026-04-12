@@ -57,6 +57,7 @@ class IncidentSnapshot(BaseModel):
     wait_minutes: float = Field(ge=0.0)
     required_support: SupportLevel
     required_hospital_level: int = Field(ge=1, le=3)
+    required_specialty: str
     decay_rate: float = Field(gt=0.0)
     description: str
 

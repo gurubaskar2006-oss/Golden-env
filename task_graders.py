@@ -6,7 +6,7 @@ from typing import Any
 from golden_hour_dispatch_env.graders import grade_state
 
 SCORE_EPSILON = 1e-4
-FALLBACK_SCORE = 0.5001
+FALLBACK_SCORE = SCORE_EPSILON
 
 
 def _clamp_score(value: float) -> float:

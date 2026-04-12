@@ -20,4 +20,7 @@ RUN pip install --upgrade pip && pip install .
 
 EXPOSE 8000
 
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3).read()" || exit 1
+
 CMD ["sh", "-c", "uvicorn golden_hour_dispatch_env.server.app:app --host 0.0.0.0 --port ${PORT:-8000}"]

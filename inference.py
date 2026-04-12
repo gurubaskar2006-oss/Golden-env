@@ -127,7 +127,12 @@ def main() -> None:
         "tasks": reports,
     }
     Path("outputs").mkdir(exist_ok=True)
-    Path("outputs/baseline_scores.json").write_text(json.dumps(output, indent=2), encoding="utf-8")
+    output_text = json.dumps(output, indent=2)
+    Path("outputs/baseline_scores.json").write_text(output_text, encoding="utf-8")
+    Path(f"outputs/baseline_scores_{effective_policy}.json").write_text(
+        output_text,
+        encoding="utf-8",
+    )
 
 
 def build_openai_client(policy: str) -> OpenAI | None:
